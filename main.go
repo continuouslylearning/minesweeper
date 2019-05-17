@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -12,6 +13,36 @@ type MineSweeper struct {
 	cols      int
 	numMines  int
 	movesLeft int
+}
+
+func PrintBoard(board [][]byte) {
+
+	fmt.Printf("  ")
+
+	for i := 0; i < len(board[0]); i++ {
+		fmt.Printf("%d ", i)
+	}
+
+	fmt.Printf("\n")
+
+	for i := 0; i < len(board); i++ {
+
+		fmt.Printf("%d ", i)
+
+		for j := 0; j < len(board[0]); j++ {
+			fmt.Printf("%c ", board[i][j])
+		}
+
+		fmt.Printf("\n")
+	}
+}
+
+func (ms *MineSweeper) printGameBoard() {
+	PrintBoard(ms.gameBoard)
+}
+
+func (ms *MineSweeper) printMineBoard() {
+	PrintBoard(ms.mineBoard)
 }
 
 func (ms *MineSweeper) setMines() {
@@ -45,6 +76,7 @@ func (ms *MineSweeper) createBoards() {
 	for i := 0; i < ms.rows; i++ {
 		for j := 0; j < ms.cols; j++ {
 			ms.gameBoard[i][j] = '-'
+			ms.mineBoard[i][j] = '-'
 		}
 	}
 }
@@ -61,6 +93,12 @@ func (ms *MineSweeper) Play() {
 	ms.createBoards()
 	ms.setMines()
 
+	// set initialize value of `movesLeft` property on Minesweeper instance
+	ms.movesLeft = ms.rows*ms.cols - ms.numMines
+
+	ms.printGameBoard()
+	ms.printMineBoard()
+
 }
 
 func main() {
@@ -69,4 +107,6 @@ func main() {
 		cols:     5,
 		numMines: 4,
 	}
+
+	ms.Play()
 }
