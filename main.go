@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -81,6 +85,74 @@ func (ms *MineSweeper) createBoards() {
 	}
 }
 
+func (ms *MineSweeper) isValid(x, y int) bool {
+	if x < 0 || x >= ms.rows {
+		return false
+	}
+
+	if y < 0 || y >= ms.cols {
+		return false
+	}
+
+	return true
+}
+
+func (ms *MineSweeper) countMines(x, y int) int {
+
+	count := 0
+
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			if ms.isValid(x+i, y+j) && ms.mineBoard[x+i][y+j] == '*' {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func (ms *MineSweeper) visit(x, y int) bool {
+
+	// this location has already been visited
+	if ms.gameBoard[x][y] != '-' {
+		return false
+	}
+
+	// a mine is at this location
+	if ms.mineBoard[x][y] == '*' {
+		return true
+	}
+
+	ms.movesLeft--
+	count := ms.countMines(x, y)
+	ms.gameBoard[x][y] = byte(count) + '0'
+	// if the location has no adjacent mines, recursively visit the adjacent locations
+	if count == 0 {
+
+		for i := -1; i <= 1; i++ {
+			for j := -1; j <= 1; j++ {
+				if ms.isValid(x+i, y+j) {
+					ms.visit(x+i, y+j)
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func (ms *MineSweeper) makeChoice() (int, int) {
+
+	r := bufio.NewReader(os.Stdin)
+	fmt.Println("Make a choice: ")
+	input, _, _ := r.ReadLine()
+	location := strings.Split(string(input), ",")
+	x, _ := strconv.Atoi(location[0])
+	y, _ := strconv.Atoi(location[1])
+
+	return x, y
+}
+
 /*
 	call Play method on instance of MineSweeper to start a game
 */
@@ -95,10 +167,27 @@ func (ms *MineSweeper) Play() {
 
 	// set initialize value of `movesLeft` property on Minesweeper instance
 	ms.movesLeft = ms.rows*ms.cols - ms.numMines
-
-	ms.printGameBoard()
 	ms.printMineBoard()
+	gameOver := false
 
+	for !gameOver {
+
+		ms.printGameBoard()
+		x, y := ms.makeChoice()
+
+		gameOver = ms.visit(x, y)
+
+		if gameOver {
+			fmt.Println("You hit a mine. Game over!")
+			ms.printMineBoard()
+		}
+
+		if !gameOver && ms.movesLeft == 0 {
+			ms.printGameBoard()
+			fmt.Printf("\nCongratulations, you won the game!")
+			gameOver = true
+		}
+	}
 }
 
 func main() {
